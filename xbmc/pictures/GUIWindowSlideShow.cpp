@@ -509,12 +509,15 @@ void CGUIWindowSlideShow::Process(unsigned int currentTime, CDirtyRegionList &re
                      maxWidth, maxHeight);
       if (!m_slides->Get(m_iNextSlide)->IsVideo())
         m_pBackgroundLoader->LoadPic(1 - m_iCurrentPic, m_iNextSlide, m_slides->Get(m_iNextSlide)->GetPath(), maxWidth, maxHeight);
+
     }
+
   }
 
   // render the current image
   if (m_Image[m_iCurrentPic].IsLoaded())
   {
+    m_Image[m_iCurrentPic].SetName( m_slides->Get(m_iCurrentSlide)->GetPath() );
     m_Image[m_iCurrentPic].SetInSlideshow(m_bSlideShow);
     m_Image[m_iCurrentPic].Pause(m_bPause);
     m_Image[m_iCurrentPic].Process(currentTime, regions);

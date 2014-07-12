@@ -79,10 +79,16 @@ public:
 
   bool m_bIsComic;
   bool m_bCanMoveHorizontally;
+
+  void SetName(CStdString name);
+  std::vector<std::string> Split(std::string str,std::string sep);
+
 private:
   void UpdateVertices(float cur_x[4], float cur_y[4], const float new_x[4], const float new_y[4], CDirtyRegionList &dirtyregions);
   void Render(float *x, float *y, CBaseTexture* pTexture, color_t color);
   CBaseTexture *m_pImage;
+
+  int m_localDelay; //RF
 
   int m_iOriginalWidth;
   int m_iOriginalHeight;

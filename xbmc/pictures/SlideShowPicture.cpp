@@ -32,6 +32,12 @@
 #endif
 #include <math.h>
 
+#include <string>
+#include <vector>
+#include <string.h>
+#include <stdio.h>
+
+
 using namespace std;
 
 #define IMMEDIATE_TRANSISTION_TIME          20
@@ -129,7 +135,7 @@ void CSlideShowPic::SetTexture(int iSlideNumber, CBaseTexture* pTexture, DISPLAY
   m_fPosX = m_fPosY = 0.0f;
   m_fPosZ = 1.0f;
   m_fVelocityX = m_fVelocityY = m_fVelocityZ = 0.0f;
-  int iFrames = max((int)(g_graphicsContext.GetFPS() * g_guiSettings.GetInt("slideshow.staytime")), 1);
+  int iFrames = max((int)(g_graphicsContext.GetFPS() * (g_guiSettings.GetInt("slideshow.staytime")+m_localDelay) ), 1);
   if (m_displayEffect == EFFECT_PANORAMA)
   {
     RESOLUTION iRes = g_graphicsContext.GetVideoResolution();
@@ -357,7 +363,7 @@ void CSlideShowPic::Process(unsigned int currentTime, CDirtyRegionList &dirtyreg
   }
   if (m_iCounter >= m_transistionEnd.start)
   { // do end transistion
-//    CLog::Log(LOGDEBUG,"Transistioning");
+    CLog::Log(LOGDEBUG," RF Transistioning to %s / localDelay: %d  ", m_strFileName.c_str(), m_localDelay );
     m_bDrawNextImage = true;
     if (m_transistionEnd.type == CROSSFADE)
     { // fade out at 1x speed
@@ -669,7 +675,7 @@ void CSlideShowPic::Rotate(float fRotateAngle, bool immediate /* = false */)
   m_transistionTemp.length = IMMEDIATE_TRANSISTION_TIME;
   m_fTransistionAngle = (float)fRotateAngle / (float)m_transistionTemp.length;
   // reset the timer
-  m_transistionEnd.start = m_iCounter + m_transistionStart.length + (int)(g_graphicsContext.GetFPS() * g_guiSettings.GetInt("slideshow.staytime"));
+  m_transistionEnd.start = m_iCounter + m_transistionStart.length + (int)(g_graphicsContext.GetFPS() * (g_guiSettings.GetInt("slideshow.staytime")+m_localDelay) );
 }
 
 void CSlideShowPic::Zoom(float fZoom, bool immediate /* = false */)
@@ -686,9 +692,36 @@ void CSlideShowPic::Zoom(float fZoom, bool immediate /* = false */)
   m_transistionTemp.length = IMMEDIATE_TRANSISTION_TIME;
   m_fTransistionZoom = (fZoom - m_fZoomAmount) / (float)m_transistionTemp.length;
   // reset the timer
-  m_transistionEnd.start = m_iCounter + m_transistionStart.length + (int)(g_graphicsContext.GetFPS() * g_guiSettings.GetInt("slideshow.staytime"));
+  m_transistionEnd.start = m_iCounter + m_transistionStart.length + (int)(g_graphicsContext.GetFPS() * (g_guiSettings.GetInt("slideshow.staytime")+m_localDelay));
   // turn off the render effects until we're back down to normal zoom
   m_bNoEffect = true;
+}
+
+
+
+std::vector<std::string> CSlideShowPic::Split(std::string str,std::string sep){
+    char* cstr=const_cast<char*>(str.c_str());
+    char* current;
+    std::vector<std::string> arr;
+    current=strtok(cstr,sep.c_str());
+    while(current!=NULL){
+        arr.push_back(current);
+        current=strtok(NULL,sep.c_str());
+    }
+    return arr;
+}
+
+
+//RF   Set file name
+void CSlideShowPic::SetName(CStdString name)
+{
+  m_strFileName = name; 
+  std::vector<std::string> arr;
+  arr=Split( name.c_str(), "--" );
+  //for(size_t i=0;i<arr.size();i++)
+  //  printf("-> %s\n", arr[i].c_str());
+  m_localDelay = atoi( arr[1].c_str() );
+
 }
 
 void CSlideShowPic::Move(float fDeltaX, float fDeltaY)
